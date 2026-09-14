@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shaxsni bilish — MBTI testi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1a1a2e;
+    --bg-raised:#22223f;
+    --bg-raised-2:#272750;
+    --accent:#e94560;
+    --accent-soft:#ff6b81;
+    --text:#f4f1ea;
+    --text-muted:#a6a6c6;
+    --line:rgba(244,241,234,0.09);
+    --line-strong:rgba(244,241,234,0.18);
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Space Grotesk', sans-serif;
+    min-height:100vh;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.serif{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    letter-spacing:-0.01em;
+  }
+  .num{ font-family:'Fraunces', serif; font-style:italic; font-weight:400; }
+  a{color:var(--accent-soft);}
+  button{font-family:inherit;}
+  ::selection{background:var(--accent); color:#fff;}
+
+  #app{ max-width:920px; margin:0 auto; padding:32px 24px 80px; }
+
+  .topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:56px; }
+  .brand{ display:flex; align-items:baseline; gap:10px; }
+  .brand-mark{ width:11px; height:11px; border-radius:50%; background:var(--accent); flex:none; }
+  .brand-name{ font-size:1.15rem; }
+  .topbar-right{ display:flex; align-items:center; gap:16px; font-size:0.9rem; color:var(--text-muted); }
+  .topbar-right button{ color:var(--text-muted); }
+
+  .btn{
+    appearance:none; border:1px solid var(--line-strong); background:transparent;
+    color:var(--text); padding:13px 26px; border-radius:999px; cursor:pointer;
+    font-size:0.95rem; transition:border-color .15s ease, background .15s ease, transform .1s ease;
+  }
+  .btn:hover{ border-color:var(--text-muted); }
+  .btn:active{ transform:scale(0.98); }
+  .btn-primary{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .btn-primary:hover{ background:var(--accent-soft); border-color:var(--accent-soft); }
+  .btn-ghost{ border-color:transparent; padding:8px 4px; color:var(--text-muted); }
+  .btn-ghost:hover{ color:var(--text); border-color:transparent; }
+  .btn:disabled{ opacity:0.35; cursor:not-allowed; }
+  .btn-row{ display:flex; gap:12px; flex-wrap:wrap; }
+
+  .screen{ display:none; animation:rise .35s ease both; }
+  .screen.active{ display:block; }
+  @keyframes rise{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+  .hero{ display:grid; grid-template-columns:1.15fr 0.85fr; gap:56px; align-items:center; }
+  .hero h1{ font-size:clamp(2.1rem, 4vw, 3.1rem); line-height:1.08; margin:0 0 22px; }
+  .hero p.lead{ color:var(--text-muted); font-size:1.05rem; max-width:46ch; margin:0 0 34px; }
+  .axis-figure{ display:flex; flex-direction:column; gap:22px; }
+  .axis-row{ display:flex; align-items:center; gap:10px; font-size:0.78rem; color:var(--text-muted); }
+  .axis-row .pole{ width:20px; flex:none; text-align:center; font-family:'Fraunces',serif; font-style:italic; color:var(--text); }
+  .axis-track{ flex:1; height:2px; background:var(--line-strong); position:relative; border-radius:2px; }
+  .axis-track i{ position:absolute; top:50%; width:10px; height:10px; border-radius:50%; background:var(--accent); transform:translate(-50%,-50%); box-shadow:0 0 0 5px rgba(233,69,96,0.15); }
+
+  .auth-wrap{ max-width:380px; margin:40px auto 0; }
+  .auth-wrap h2{ font-size:1.6rem; margin:0 0 6px; }
+  .auth-wrap .sub{ color:var(--text-muted); font-size:0.92rem; margin:0 0 30px; }
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:0.78rem; color:var(--text-muted); margin-bottom:7px; }
+  .field input{
+    width:100%; padding:12px 14px; border-radius:10px; border:1px solid var(--line-strong);
+    background:var(--bg-raised); color:var(--text); font-size:0.95rem; font-family:inherit;
+  }
+  .field input:focus{ outline:2px solid var(--accent); outline-offset:1px; border-color:transparent; }
+  .auth-error{ color:var(--accent-soft); font-size:0.85rem; min-height:20px; margin-top:2px; }
+  .auth-switch{ margin-top:22px; font-size:0.88rem; color:var(--text-muted); }
+  .auth-switch button{ background:none; border:none; color:var(--accent-soft); cursor:pointer; font-size:inherit; padding:0; text-decoration:underline; }
+
+  .dash-head{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:34px; gap:20px; flex-wrap:wrap; }
+  .dash-head h2{ font-size:1.9rem; margin:0 0 6px; }
+  .dash-head p{ color:var(--text-muted); margin:0; }
+  .card{ background:var(--bg-raised); border:1px solid var(--line); border-radius:var(--radius); padding:26px; }
+  .cta-card{ display:flex; justify-content:space-between; align-items:center; gap:20px; margin-bottom:36px; flex-wrap:wrap; }
+  .cta-card h3{ margin:0 0 6px; font-size:1.25rem; }
+  .cta-card p{ margin:0; color:var(--text-muted); font-size:0.92rem; }
+
+  .history-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .history-head h3{ font-size:1rem; font-weight:500; color:var(--text-muted); margin:0; }
+  .hist-list{ display:flex; flex-direction:column; gap:1px; background:var(--line); border-radius:var(--radius); overflow:hidden; }
+  .hist-item{ background:var(--bg-raised); padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:14px; cursor:pointer; transition:background .15s; }
+  .hist-item:hover{ background:var(--bg-raised-2); }
+  .hist-type{ font-family:'Fraunces',serif; font-size:1.3rem; color:var(--accent-soft); width:64px; flex:none; }
+  .hist-mid{ flex:1; min-width:0; }
+  .hist-mid .name{ font-size:0.95rem; }
+  .hist-mid .date{ font-size:0.78rem; color:var(--text-muted); }
+  .empty-hint{ color:var(--text-muted); font-size:0.9rem; padding:22px 4px; }
+
+  .quiz-top{ margin-bottom:38px; }
+  .quiz-progress-track{ height:3px; background:var(--line); border-radius:2px; overflow:hidden; margin-bottom:12px; }
+  .quiz-progress-fill{ height:100%; background:var(--accent); border-radius:2px; transition:width .3s ease; }
+  .quiz-meta{ display:flex; justify-content:space-between; font-size:0.82rem; color:var(--text-muted); }
+  .quiz-meta .num{ color:var(--text); font-size:0.95rem; }
+
+  .q-card{ padding:10px 0 8px; }
+  .q-axis-label{ font-size:0.78rem; color:var(--text-muted); margin-bottom:18px; }
+  .q-text{ font-size:clamp(1.35rem,2.6vw,1.75rem); line-height:1.35; margin:0 0 42px; max-width:20ch; }
+
+  .scale{ display:flex; align-items:center; gap:0; margin-bottom:10px; }
+  .scale-end{ font-size:0.76rem; color:var(--text-muted); width:92px; flex:none; line-height:1.3; }
+  .scale-end.right{ text-align:right; }
+  .scale-opts{ flex:1; display:flex; justify-content:space-between; padding:0 8px; }
+  .scale-opt{ width:44px; height:44px; border-radius:50%; border:1px solid var(--line-strong); background:transparent; cursor:pointer; position:relative; transition:all .15s ease; flex:none; }
+  .scale-opt:hover{ border-color:var(--accent-soft); }
+  .scale-opt.selected{ background:var(--accent); border-color:var(--accent); }
+  .scale-opt.size-1{ width:16px; height:16px; }
+  .scale-opt.size-2{ width:26px; height:26px; }
+  .scale-opt.size-3{ width:36px; height:36px; }
+  @media (max-width:560px){
+    .scale{ flex-wrap:wrap; }
+    .scale-end{ width:100%; margin-bottom:12px; text-align:left !important; }
+    .scale-opts{ width:100%; padding:0; }
+  }
+
+  .quiz-nav{ display:flex; justify-content:space-between; margin-top:36px; }
+
+  .result-hero{ text-align:left; margin-bottom:8px; }
+  .result-type{ font-family:'Fraunces',serif; font-size:clamp(3rem,10vw,5.2rem); color:var(--accent); line-height:1; margin:0 0 14px; letter-spacing:-0.02em; }
+  .result-name{ font-size:1.3rem; margin:0 0 26px; color:var(--text-muted); }
+  .result-desc{ max-width:62ch; font-size:1.02rem; margin:0 0 40px; }
+
+  .axes-detail{ display:flex; flex-direction:column; gap:22px; margin-bottom:44px; }
+  .axis-detail-row .labels{ display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:8px; }
+  .axis-detail-row .labels .win{ color:var(--text); }
+  .axis-detail-row .labels .lose{ color:var(--text-muted); }
+  .axis-bar{ height:8px; border-radius:4px; background:var(--bg-raised-2); position:relative; overflow:hidden; }
+  .axis-bar-fill{ position:absolute; top:0; bottom:0; background:var(--accent); border-radius:4px; }
+  .axis-pct{ font-size:0.75rem; color:var(--text-muted); margin-top:6px; }
+
+  .result-actions{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:8px; }
+  .copy-flash{ font-size:0.85rem; color:var(--accent-soft); margin-top:10px; min-height:18px; }
+
+  .loading-hint{ color:var(--text-muted); font-size:0.9rem; padding:22px 4px; }
+
+  footer.note{ margin-top:70px; padding-top:24px; border-top:1px solid var(--line); font-size:0.78rem; color:var(--text-muted); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="topbar">
+    <div class="brand"><span class="brand-mark"></span><span class="brand-name serif">Ichki Kompas</span></div>
+    <div class="topbar-right" id="topbarRight"></div>
+  </div>
+
+  <section class="screen" id="screen-landing">
+    <div class="hero">
+      <div>
+        <h1>O'zingizni his qilganingizdan ko'ra aniqroq tanib oling.</h1>
+        <p class="lead">32 ta savol, to'rtta o'lchov, bitta xarita — qanday o'ylashingiz, qaror qabul qilishingiz va energiya olishingiz haqida. Natijalaringiz hisobingizda saqlanadi.</p>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="go('auth')">Boshlash</button>
+        </div>
+      </div>
+      <div class="axis-figure">
+        <div class="axis-row"><span class="pole">E</span><div class="axis-track"><i style="left:38%"></i></div><span class="pole">I</span></div>
+        <div class="axis-row"><span class="pole">S</span><div class="axis-track"><i style="left:64%"></i></div><span class="pole">N</span></div>
+        <div class="axis-row"><span class="pole">T</span><div class="axis-track"><i style="left:22%"></i></div><span class="pole">F</span></div>
+        <div class="axis-row"><span class="pole">J</span><div class="axis-track"><i style="left:71%"></i></div><span class="pole">P</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-auth">
+    <div class="auth-wrap card">
+      <h2 id="authTitle">Kirish</h2>
+      <p class="sub" id="authSub">Natijalaringizni saqlash uchun hisobingizga kiring.</p>
+      <div class="field">
+        <label for="authUser">Foydalanuvchi nomi</label>
+        <input id="authUser" type="text" autocomplete="username" placeholder="masalan: dilnoza_92">
+      </div>
+      <div class="field" id="authEmailField" style="display:none;">
+        <label for="authEmail">Email (ixtiyoriy)</label>
+        <input id="authEmail" type="email" autocomplete="email" placeholder="natijalaringizni olish uchun">
+      </div>
+      <div class="field">
+        <label for="authPass">Parol</label>
+        <input id="authPass" type="password" autocomplete="current-password" placeholder="•••••••">
+      </div>
+      <div class="auth-error" id="authError"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="authSubmitBtn" onclick="submitAuth()">Kirish</button>
+      </div>
+      <div class="auth-switch">
+        <span id="authSwitchText">Hisobingiz yo'qmi?</span> <button onclick="toggleAuthMode()" id="authSwitchBtn">Ro'yxatdan o'tish</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-dash">
+    <div class="dash-head">
+      <div>
+        <h2>Xush kelibsiz, <span id="dashUserName"></span></h2>
+        <p>Yangi test o'ting yoki avvalgi natijalaringizni ko'ring.</p>
+      </div>
+      <div id="adminLinkWrap"></div>
+    </div>
+
+    <div class="card cta-card">
+      <div>
+        <h3>Yangi test</h3>
+        <p>Taxminan 6–8 daqiqa vaqt oladi, 32 ta savol.</p>
+      </div>
+      <button class="btn btn-primary" onclick="startQuiz()" id="startBtn">Testni boshlash</button>
+    </div>
+
+    <div class="card cta-card" id="referralCard">
+      <div>
+        <h3>Do'stlaringizni taklif qiling</h3>
+        <p id="referralSub">Havolangiz orqali <span id="referralCount">0</span> kishi qo'shildi.</p>
+      </div>
+      <button class="btn" onclick="copyReferralLink()">Havolani nusxalash</button>
+    </div>
+    <div class="copy-flash" id="referralFlash" style="margin:-24px 0 24px;"></div>
+
+    <div class="history-head">
+      <h3>Test tarixi</h3>
+    </div>
+    <div id="historyBox"></div>
+
+    <footer class="note">Parolingiz serverda xavfsiz shifrlangan holatda saqlanadi. Ro'yxatdan o'tish va test natijalari haqida ma'lumot sayt egasining Telegram botiga yuboriladi.</footer>
+  </section>
+
+  <section class="screen" id="screen-quiz">
+    <div class="quiz-top">
+      <div class="quiz-progress-track"><div class="quiz-progress-fill" id="quizProgressFill"></div></div>
+      <div class="quiz-meta"><span class="num" id="quizMetaNum">1 / 32</span><span id="quizMetaHint">Eng birinchi xayolingizga ishoning</span></div>
+    </div>
+    <div class="q-card">
+      <div class="q-axis-label" id="qAxisLabel"></div>
+      <h2 class="q-text" id="qText"></h2>
+      <div class="scale">
+        <div class="scale-end" id="scaleLeftLabel">Mutlaqo rozi emasman</div>
+        <div class="scale-opts" id="scaleOpts"></div>
+        <div class="scale-end right" id="scaleRightLabel">Mutlaqo roziman</div>
+      </div>
+    </div>
+    <div class="quiz-nav">
+      <button class="btn" onclick="prevQuestion()" id="prevBtn">Orqaga</button>
+      <button class="btn btn-ghost" onclick="go('dash')">Keyinroq davom ettirish</button>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-result">
+    <div class="result-hero">
+      <div class="result-type" id="resultType"></div>
+      <div class="result-name serif" id="resultName"></div>
+    </div>
+    <p class="result-desc" id="resultDesc"></p>
+
+    <div class="axes-detail" id="axesDetail"></div>
+
+    <div class="result-actions">
+      <button class="btn btn-primary" onclick="go('dash')">Boshqaruv paneliga qaytish</button>
+      <button class="btn" onclick="copyResult()">Natijani nusxalash</button>
+      <button class="btn" onclick="downloadResult()">Matn sifatida yuklab olish</button>
+      <button class="btn" onclick="startQuiz()">Qayta topshirish</button>
+    </div>
+    <div class="copy-flash" id="copyFlash"></div>
+
+    <div class="card" style="margin-top:12px; max-width:420px;">
+      <h3 style="margin:0 0 6px; font-size:1.05rem;">Natijani email orqali olish</h3>
+      <p style="margin:0 0 16px; color:var(--text-muted); font-size:0.88rem;">O'zingizga yoki do'stingizga yuboring.</p>
+      <div class="field">
+        <input id="resultEmailInput" type="email" placeholder="email@masalan.com">
+      </div>
+      <button class="btn btn-primary" onclick="sendResultEmail()" id="sendEmailBtn">Yuborish</button>
+      <div class="copy-flash" id="emailFlash"></div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const API_BASE = '/api';
+
+/* ============== DATA ============== */
+const AXES = [
+  {key:'EI', left:'E', right:'I', leftName:"Ekstravert", rightName:"Introvert"},
+  {key:'SN', left:'S', right:'N', leftName:"Sezuvchan", rightName:"Intuitiv"},
+  {key:'TF', left:'T', right:'F', leftName:"Mantiqiy", rightName:"Hissiy"},
+  {key:'JP', left:'J', right:'P', leftName:"Rejalashtiruvchi", rightName:"Moslashuvchan"},
+];
+
+const QUESTIONS = [
+  {axis:'EI', pole:'left', text:"Odamlar to'la xonada o'zimni his qilaman, u yerda energiyam ortadi."},
+  {axis:'EI', pole:'right', text:"Kuningizdan so'ng tinch, yolg'iz vaqt meni tiklaydi."},
+  {axis:'EI', pole:'left', text:"Yangi tanishlar bilan suhbatni boshlash men uchun oson."},
+  {axis:'EI', pole:'right', text:"Fikrlarimni gapirishdan oldin ichimda pishitib olishni afzal ko'raman."},
+  {axis:'EI', pole:'left', text:"Guruh loyihalarida ovoz chiqarib fikrlashni yoqtiraman."},
+  {axis:'EI', pole:'right', text:"Katta tadbirlardan so'ng charchayman, hatto yoqqan bo'lsa ham."},
+  {axis:'EI', pole:'left', text:"Do'stlarim meni suhbatning markazi deb ta'riflashadi."},
+  {axis:'EI', pole:'right', text:"Bir yoki ikkita yaqin do'st, katta doiradan ko'ra qadrliroq."},
+
+  {axis:'SN', pole:'left', text:"Aniq faktlar va tafsilotlarga tayanib qaror qabul qilaman."},
+  {axis:'SN', pole:'right', text:"Narsalarning yashirin ma'nosi va bog'liqligini ko'rishni yaxshi ko'raman."},
+  {axis:'SN', pole:'left', text:"Amaliy tajriba nazariyadan ko'ra ishonchliroq o'qituvchi."},
+  {axis:'SN', pole:'right', text:"Kelajak imkoniyatlari haqida orzu qilishni yoqtiraman."},
+  {axis:'SN', pole:'left', text:"Ko'rsatmalarni bosqichma-bosqich, aniq bajarishni afzal ko'raman."},
+  {axis:'SN', pole:'right', text:"Metafora va o'xshatishlar orqali fikrlash menga tabiiy keladi."},
+  {axis:'SN', pole:'left', text:"Hozirgi paytga va real vaziyatga ko'proq e'tibor beraman."},
+  {axis:'SN', pole:'right', text:"Yangi g'oyalar meni mavjud usullardan ko'ra ko'proq qiziqtiradi."},
+
+  {axis:'TF', pole:'left', text:"Qaror qabul qilishda his-tuyg'ulardan ko'ra mantiqqa tayanaman."},
+  {axis:'TF', pole:'right', text:"Boshqalarning kayfiyatini o'zimniki kabi sezaman."},
+  {axis:'TF', pole:'left', text:"Adolat — bu qoidalarning barchaga bir xil qo'llanishi, deb hisoblayman."},
+  {axis:'TF', pole:'right', text:"Muhim qarorlarda odamlarga ta'sirini birinchi o'ylayman."},
+  {axis:'TF', pole:'left', text:"Tanqidni shaxsiy emas, foydali ma'lumot sifatida qabul qilaman."},
+  {axis:'TF', pole:'right', text:"Kelishmovchilikda uyg'unlikni saqlash men uchun muhim."},
+  {axis:'TF', pole:'left', text:"To'g'ri bo'lish, yoqimli bo'lishdan ko'ra muhimroq."},
+  {axis:'TF', pole:'right', text:"Qaror qabul qilishda qadriyatlarim mantiqdan ustun turadi."},
+
+  {axis:'JP', pole:'left', text:"Ish tugagunga qadar rejaga qat'iy amal qilaman."},
+  {axis:'JP', pole:'right', text:"Oxirgi daqiqada o'zgarishlar meni qo'rqitmaydi, aksincha qiziqtiradi."},
+  {axis:'JP', pole:'left', text:"Xonam va ish stolim tartibli bo'lishini yoqtiraman."},
+  {axis:'JP', pole:'right', text:"Kunimni oldindan qat'iy rejalashtirmasdan yashashni afzal ko'raman."},
+  {axis:'JP', pole:'left', text:"Muddatlarni erta bajarib, tinch bo'lishni yoqtiraman."},
+  {axis:'JP', pole:'right', text:"Variantlarni ochiq qoldirish menga erkinlik hissini beradi."},
+  {axis:'JP', pole:'left', text:"Aniq maqsad va ro'yxatlar bo'lmasa, o'zimni yo'qotgandek his qilaman."},
+  {axis:'JP', pole:'right', text:"Vaziyatga qarab moslashish, qat'iy rejadan ko'ra qulayroq."},
+];
+
+const TYPES = {
+  ISTJ:{name:"Nazoratchi", desc:"Aniqlik va mas'uliyat sizning belgingiz. Va'dalaringizga qat'iy amal qilasiz, tartib va isbotlangan usullarga tayanib, ishonchli natijalar berasiz."},
+  ISFJ:{name:"Himoyachi", desc:"Sokin fidoyilik bilan atrofingizdagilarning ehtiyojlarini sezasiz. Barqarorlik yaratib, orqa fondan turib boshqalarga g'amxo'rlik qilasiz."},
+  INFJ:{name:"Maslahatchi", desc:"Chuqur qadriyatlar va his-tuyg'ular olamini mantiq bilan uyg'unlashtirasiz. Insonlar va g'oyalardagi ma'noni izlaysiz, uzoq muddatli ta'sirga intilasiz."},
+  INTJ:{name:"Strateg", desc:"Mustaqil fikrlaysiz va uzoq muddatli rejalar tuzasiz. Murakkab tizimlarni tushunish va yaxshilashda ajoyibsiz, samaradorlikni qadrlaysiz."},
+  ISTP:{name:"Ustaxonachi", desc:"Qo'llaringiz va mantiqiy fikrlash bilan muammolarni hal qilasiz. Amaliy, mustaqil va vaziyatga tez moslashuvchansiz."},
+  ISFP:{name:"Rassom", desc:"Nozik did va samimiy his-tuyg'ular bilan yashaysiz. Erkinlikni qadrlaysiz va go'zallikni kundalik hayotda topa olasiz."},
+  INFP:{name:"Vositachi", desc:"Ichki qadriyatlaringizga sodiqsiz va boshqalarning ichki dunyosini chuqur tushunasiz. Ijodiy va g'oyaviy izlanishlarga moyilsiz."},
+  INTP:{name:"Mantiqchi", desc:"Bilimga chanqoqligingiz cheksiz. Tizimlar, g'oyalar va \"nega\" savoliga javob topishni yoqtirasiz, mustaqil tahlil qilishni afzal ko'rasiz."},
+  ESTP:{name:"Tadbirkor", desc:"Harakatda yashaysiz, hozirgi lahzadan zavqlanasiz. Amaliy zukkolik va jasorat bilan tezkor qarorlar qabul qilasiz."},
+  ESFP:{name:"Ijrochi", desc:"Hayotni sahna deb bilasiz — quvnoq, ochiq va odamlarga energiya ulashuvchisiz. Lahzadan zavq olishni yaxshi bilasiz."},
+  ENFP:{name:"Faol", desc:"G'ayrat va qiziqish bilan to'lasiz. Yangi imkoniyatlarni va odamlardagi salohiyatni ko'ra olasiz, ilhomlantirasiz."},
+  ENTP:{name:"Bahschi", desc:"G'oyalar bilan o'ynashni, savol berishni va yangi yechimlar topishni yoqtirasiz. Tezkor fikrlaysiz va bahsda quvnoqsiz."},
+  ESTJ:{name:"Boshqaruvchi", desc:"Tartib o'rnatish va natijaga erishishda mahoratlisiz. Aniq standartlar bilan jamoani samarali boshqarasiz."},
+  ESFJ:{name:"Konsul", desc:"Jamiyat va yaqinlaringiz farovonligi siz uchun muhim. Hamkorlik va an'analarni qadrlab, atrofga issiqlik ulashasiz."},
+  ENFJ:{name:"Bosh murabbiy", desc:"Boshqalarning eng yaxshi tomonini ko'rish va rivojlantirishga qodirsiz. Ilhomlantiruvchi va g'amxo'r yetakchisiz."},
+  ENTJ:{name:"Qo'mondon", desc:"Aniq vizyon bilan odamlarni maqsad sari yetaklaysiz. Qat'iyat va strategik fikrlash bilan ajralib turasiz."},
+};
+
+/* ============== STATE ============== */
+let currentUser = localStorage.getItem('mbti_username') || null;
+let authToken = localStorage.getItem('mbti_token') || null;
+let authMode = 'login';
+let quizAnswers = {};
+let quizIndex = 0;
+
+/* ============== API HELPER ============== */
+async function api(path, options = {}) {
+  const headers = Object.assign({'Content-Type':'application/json'}, options.headers || {});
+  if (authToken) headers['Authorization'] = 'Bearer ' + authToken;
+  const res = await fetch(API_BASE + path, Object.assign({}, options, {headers}));
+  let data = null;
+  try { data = await res.json(); } catch(e) { data = null; }
+  if (res.status === 401) {
+    logout();
+    throw new Error((data && data.error) || 'Sessiya tugagan, qayta kiring.');
+  }
+  if (!res.ok) {
+    throw new Error((data && data.error) || 'Xatolik yuz berdi.');
+  }
+  return data;
+}
+
+/* ============== NAV ============== */
+function go(screen){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+screen).classList.add('active');
+  renderTopbar();
+  if(screen==='dash') renderDashboard();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function renderTopbar(){
+  const el = document.getElementById('topbarRight');
+  if(currentUser){
+    el.innerHTML = `<span>${escapeHtml(currentUser)}</span><button class="btn-ghost" onclick="logout()" style="background:none;border:none;cursor:pointer;">Chiqish</button>`;
+  } else {
+    el.innerHTML = '';
+  }
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ============== AUTH ============== */
+function toggleAuthMode(){
+  authMode = authMode==='login' ? 'register' : 'login';
+  document.getElementById('authTitle').textContent = authMode==='login' ? 'Kirish' : "Ro'yxatdan o'tish";
+  document.getElementById('authSub').textContent = authMode==='login' ? 'Natijalaringizni saqlash uchun hisobingizga kiring.' : "Bir necha soniyada bepul hisob yarating.";
+  document.getElementById('authSubmitBtn').textContent = authMode==='login' ? 'Kirish' : "Ro'yxatdan o'tish";
+  document.getElementById('authSwitchText').textContent = authMode==='login' ? "Hisobingiz yo'qmi?" : 'Hisobingiz bormi?';
+  document.getElementById('authSwitchBtn').textContent = authMode==='login' ? "Ro'yxatdan o'tish" : 'Kirish';
+  document.getElementById('authEmailField').style.display = authMode==='register' ? 'block' : 'none';
+  document.getElementById('authError').textContent = '';
+}
+
+function getReferralFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  return params.get('ref');
+}
+
+async function submitAuth(){
+  const user = document.getElementById('authUser').value.trim();
+  const pass = document.getElementById('authPass').value;
+  const email = document.getElementById('authEmail').value.trim();
+  const errEl = document.getElementById('authError');
+  errEl.textContent = '';
+
+  if(!user || !pass){
+    errEl.textContent = "Iltimos, ikkala maydonni ham to'ldiring.";
+    return;
+  }
+
+  const btn = document.getElementById('authSubmitBtn');
+  btn.disabled = true;
+  try{
+    const endpoint = authMode==='register' ? '/auth/register' : '/auth/login';
+    const body = {username:user, password:pass};
+    if(authMode==='register'){
+      if(email) body.email = email;
+      const ref = getReferralFromUrl();
+      if(ref) body.ref = ref;
+    }
+    const data = await api(endpoint, {method:'POST', body: JSON.stringify(body)});
+    authToken = data.token;
+    currentUser = data.username;
+    localStorage.setItem('mbti_token', authToken);
+    localStorage.setItem('mbti_username', currentUser);
+    document.getElementById('authUser').value = '';
+    document.getElementById('authPass').value = '';
+    document.getElementById('authEmail').value = '';
+    go('dash');
+  }catch(e){
+    errEl.textContent = e.message;
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+function logout(){
+  currentUser = null;
+  authToken = null;
+  localStorage.removeItem('mbti_token');
+  localStorage.removeItem('mbti_username');
+  go('landing');
+}
+
+/* ============== DASHBOARD / HISTORY ============== */
+async function renderReferralAndAdmin(){
+  try{
+    const me = await api('/auth/me');
+    document.getElementById('referralCount').textContent = me.referralCount || 0;
+    const link = window.location.origin + window.location.pathname + '?ref=' + encodeURIComponent(me.username);
+    document.getElementById('referralCard').dataset.link = link;
+
+    const adminWrap = document.getElementById('adminLinkWrap');
+    if(me.isAdmin){
+      adminWrap.innerHTML = '<a href="/admin.html" class="btn btn-ghost" style="text-decoration:none;">Admin panel →</a>';
+    } else {
+      adminWrap.innerHTML = '';
+    }
+  }catch(e){
+    // jim o'tkazib yuboriladi - referral/admin ma'lumotlari asosiy funksionallik uchun shart emas
+  }
+}
+
+async function copyReferralLink(){
+  const link = document.getElementById('referralCard').dataset.link || '';
+  const flash = document.getElementById('referralFlash');
+  if(!link){ flash.textContent = "Havola hali tayyor emas."; return; }
+  try{
+    await navigator.clipboard.writeText(link);
+    flash.textContent = 'Havola nusxalandi!';
+  }catch(e){
+    flash.textContent = link;
+  }
+  setTimeout(()=>flash.textContent='', 3000);
+}
+
+async function renderDashboard(){
+  document.getElementById('dashUserName').textContent = currentUser || '';
+  renderReferralAndAdmin();
+  const box = document.getElementById('historyBox');
+  box.innerHTML = '<div class="loading-hint">Yuklanmoqda...</div>';
+  let list = [];
+  try{
+    const data = await api('/results');
+    list = data.results || [];
+  }catch(e){
+    box.innerHTML = `<div class="card empty-hint">${escapeHtml(e.message)}</div>`;
+    return;
+  }
+
+  if(!list.length){
+    box.innerHTML = '<div class="card empty-hint">Hali test topshirmagansiz. Yuqoridagi tugma orqali boshlang.</div>';
+    return;
+  }
+  list = list.slice().reverse();
+  box.innerHTML = '<div class="hist-list">' + list.map((r)=>{
+    const d = new Date(r.date);
+    const dateStr = d.toLocaleDateString('uz-UZ', {day:'2-digit', month:'long', year:'numeric'});
+    const typeInfo = TYPES[r.type] || {name:''};
+    return `<div class="hist-item" onclick='showStoredResult(${JSON.stringify(JSON.stringify(r))})'>
+      <div class="hist-type">${r.type}</div>
+      <div class="hist-mid"><div class="name">${typeInfo.name}</div><div class="date">${dateStr}</div></div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+function showStoredResult(rJson){
+  const r = JSON.parse(rJson);
+  renderResult(r.type, r.scores);
+  go('result');
+}
+
+/* ============== QUIZ ============== */
+async function startQuiz(){
+  quizAnswers = {};
+  quizIndex = 0;
+  try{
+    const data = await api('/results/draft');
+    if(data.draft){ quizAnswers = data.draft.answers || {}; quizIndex = data.draft.index || 0; }
+  }catch(e){}
+  go('quiz');
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[quizIndex];
+  const axisInfo = AXES.find(a=>a.key===q.axis);
+  document.getElementById('qAxisLabel').textContent = axisInfo.leftName + ' — ' + axisInfo.rightName + " o'lchovi";
+  document.getElementById('qText').textContent = q.text;
+  document.getElementById('quizMetaNum').textContent = (quizIndex+1) + ' / ' + QUESTIONS.length;
+  document.getElementById('quizProgressFill').style.width = ((quizIndex)/QUESTIONS.length*100) + '%';
+  document.getElementById('prevBtn').disabled = quizIndex===0;
+
+  const sizes = ['size-1','size-2','size-3','size-2','size-1'];
+  const opts = document.getElementById('scaleOpts');
+  opts.innerHTML = '';
+  for(let v=1; v<=5; v++){
+    const b = document.createElement('button');
+    b.className = 'scale-opt ' + sizes[v-1] + (quizAnswers[quizIndex]===v ? ' selected' : '');
+    b.setAttribute('aria-label', 'Baho '+v);
+    b.onclick = ()=>selectAnswer(v);
+    opts.appendChild(b);
+  }
+}
+
+async function selectAnswer(v){
+  quizAnswers[quizIndex] = v;
+  api('/results/draft', {method:'PUT', body: JSON.stringify({answers:quizAnswers, index:quizIndex})}).catch(()=>{});
+  if(quizIndex < QUESTIONS.length-1){
+    quizIndex++;
+    renderQuestion();
+  } else {
+    document.getElementById('quizProgressFill').style.width = '100%';
+    await finishQuiz();
+  }
+}
+
+function prevQuestion(){
+  if(quizIndex>0){ quizIndex--; renderQuestion(); }
+}
+
+async function finishQuiz(){
+  const totals = {EI:{left:0,right:0}, SN:{left:0,right:0}, TF:{left:0,right:0}, JP:{left:0,right:0}};
+  QUESTIONS.forEach((q,i)=>{
+    const v = quizAnswers[i] || 3;
+    if(q.pole==='left') totals[q.axis].left += v;
+    else totals[q.axis].right += v;
+  });
+
+  let typeCode = '';
+  const scores = {};
+  AXES.forEach(a=>{
+    const l = totals[a.key].left, r = totals[a.key].right;
+    const total = l + r;
+    const leftPct = total ? Math.round((l/total)*100) : 50;
+    scores[a.key] = {left:l, right:r, leftPct};
+    typeCode += (l>=r) ? a.left : a.right;
+  });
+
+  try{
+    await api('/results', {method:'POST', body: JSON.stringify({type:typeCode, scores})});
+  }catch(e){}
+
+  renderResult(typeCode, scores);
+  go('result');
+}
+
+/* ============== RESULT ============== */
+let lastResultText = '';
+let lastResultType = '';
+let lastResultScores = null;
+
+function renderResult(typeCode, scores){
+  lastResultType = typeCode;
+  lastResultScores = scores;
+  document.getElementById('emailFlash').textContent = '';
+  document.getElementById('resultEmailInput').value = '';
+  const info = TYPES[typeCode] || {name:'', desc:''};
+  document.getElementById('resultType').textContent = typeCode;
+  document.getElementById('resultName').textContent = info.name;
+  document.getElementById('resultDesc').textContent = info.desc;
+
+  const box = document.getElementById('axesDetail');
+  box.innerHTML = AXES.map(a=>{
+    const s = scores[a.key];
+    const winIsLeft = s.left >= s.right;
+    const winLetter = winIsLeft ? a.left : a.right;
+    const winName = winIsLeft ? a.leftName : a.rightName;
+    const loseName = winIsLeft ? a.rightName : a.leftName;
+    const pct = winIsLeft ? s.leftPct : (100-s.leftPct);
+    return `<div class="axis-detail-row">
+      <div class="labels"><span class="win">${winLetter} · ${winName}</span><span class="lose">${loseName}</span></div>
+      <div class="axis-bar"><div class="axis-bar-fill" style="width:${pct}%; ${winIsLeft ? 'left:0' : 'right:0'}"></div></div>
+      <div class="axis-pct">${pct}% moyillik</div>
+    </div>`;
+  }).join('');
+
+  lastResultText = `Mening MBTI natijam: ${typeCode} — ${info.name}\n${info.desc}\n\n` +
+    AXES.map(a=>{
+      const s = scores[a.key];
+      const winIsLeft = s.left >= s.right;
+      const pct = winIsLeft ? s.leftPct : (100-s.leftPct);
+      return `${winIsLeft ? a.leftName : a.rightName}: ${pct}%`;
+    }).join('\n');
+}
+
+async function copyResult(){
+  const flash = document.getElementById('copyFlash');
+  try{
+    await navigator.clipboard.writeText(lastResultText);
+    flash.textContent = 'Nusxalandi!';
+  }catch(e){
+    flash.textContent = "Nusxalab bo'lmadi — brauzer ruxsat bermadi.";
+  }
+  setTimeout(()=>flash.textContent='', 2200);
+}
+
+function downloadResult(){
+  const blob = new Blob([lastResultText], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'mbti-natija.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+async function sendResultEmail(){
+  const input = document.getElementById('resultEmailInput');
+  const flash = document.getElementById('emailFlash');
+  const email = input.value.trim();
+  const btn = document.getElementById('sendEmailBtn');
+
+  if(!lastResultType || !lastResultScores){
+    flash.textContent = "Avval testni yakunlang.";
+    return;
+  }
+
+  btn.disabled = true;
+  flash.textContent = '';
+  try{
+    const body = {type:lastResultType, scores:lastResultScores};
+    if(email) body.email = email;
+    await api('/results/send-email', {method:'POST', body: JSON.stringify(body)});
+    flash.textContent = "Yuborildi!";
+    input.value = '';
+  }catch(e){
+    flash.textContent = e.message;
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+/* ============== INIT ============== */
+if(currentUser && authToken){
+  go('dash');
+} else if(getReferralFromUrl()){
+  toggleAuthMode();
+  go('auth');
+} else {
+  go('landing');
+}
+</script>
+</body>
+</html>

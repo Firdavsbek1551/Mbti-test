@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin panel — Ichki Kompas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1a1a2e; --bg-raised:#22223f; --bg-raised-2:#272750;
+    --accent:#e94560; --accent-soft:#ff6b81;
+    --text:#f4f1ea; --text-muted:#a6a6c6;
+    --line:rgba(244,241,234,0.09); --line-strong:rgba(244,241,234,0.18);
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--bg); color:var(--text); font-family:'Space Grotesk',sans-serif; line-height:1.5; }
+  h1,h2,h3,.serif{ font-family:'Fraunces',serif; font-weight:500; letter-spacing:-0.01em; }
+  #app{ max-width:1000px; margin:0 auto; padding:32px 24px 80px; }
+  .topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:40px; }
+  .brand{ display:flex; align-items:baseline; gap:10px; }
+  .brand-mark{ width:11px; height:11px; border-radius:50%; background:var(--accent); }
+  .topbar a{ color:var(--text-muted); font-size:0.88rem; text-decoration:none; }
+  .topbar a:hover{ color:var(--text); }
+
+  .card{ background:var(--bg-raised); border:1px solid var(--line); border-radius:var(--radius); padding:24px; }
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:0.78rem; color:var(--text-muted); margin-bottom:7px; }
+  .field input{ width:100%; padding:12px 14px; border-radius:10px; border:1px solid var(--line-strong); background:var(--bg-raised-2); color:var(--text); font-size:0.95rem; font-family:inherit; }
+  .field input:focus{ outline:2px solid var(--accent); outline-offset:1px; border-color:transparent; }
+  .btn{ appearance:none; border:1px solid var(--line-strong); background:transparent; color:var(--text); padding:12px 24px; border-radius:999px; cursor:pointer; font-size:0.92rem; }
+  .btn-primary{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .btn-primary:hover{ background:var(--accent-soft); }
+  .auth-error{ color:var(--accent-soft); font-size:0.85rem; min-height:20px; }
+
+  .login-wrap{ max-width:360px; margin:60px auto 0; }
+  .login-wrap h2{ margin:0 0 6px; }
+  .login-wrap p{ color:var(--text-muted); font-size:0.9rem; margin:0 0 26px; }
+
+  .stat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px; margin-bottom:36px; }
+  .stat-card{ background:var(--bg-raised); border:1px solid var(--line); border-radius:var(--radius); padding:20px; }
+  .stat-num{ font-family:'Fraunces',serif; font-size:2.2rem; color:var(--accent); margin:0 0 4px; }
+  .stat-label{ color:var(--text-muted); font-size:0.82rem; }
+
+  section.block{ margin-bottom:44px; }
+  section.block h3{ font-size:1rem; font-weight:500; color:var(--text-muted); margin:0 0 16px; }
+
+  .bar-row{ display:grid; grid-template-columns:60px 1fr 40px; align-items:center; gap:12px; margin-bottom:10px; font-size:0.85rem; }
+  .bar-row .code{ font-family:'Fraunces',serif; color:var(--accent-soft); }
+  .bar-track{ height:10px; background:var(--bg-raised-2); border-radius:5px; overflow:hidden; }
+  .bar-fill{ height:100%; background:var(--accent); border-radius:5px; }
+  .bar-row .count{ text-align:right; color:var(--text-muted); }
+
+  table{ width:100%; border-collapse:collapse; font-size:0.88rem; }
+  th{ text-align:left; color:var(--text-muted); font-weight:500; font-size:0.76rem; text-transform:uppercase; letter-spacing:0.03em; padding:10px 12px; border-bottom:1px solid var(--line-strong); }
+  td{ padding:12px; border-bottom:1px solid var(--line); }
+  tr:last-child td{ border-bottom:none; }
+  .muted{ color:var(--text-muted); }
+  .table-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:var(--radius); }
+  .empty-hint{ color:var(--text-muted); font-size:0.9rem; padding:20px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div class="brand"><span class="brand-mark"></span><span class="serif">Admin panel</span></div>
+    <a href="/index.html" id="topbarAction">← Saytga qaytish</a>
+  </div>
+
+  <div id="loginScreen" style="display:none;">
+    <div class="login-wrap card">
+      <h2>Admin sifatida kiring</h2>
+      <p>Bu — faqat administratorlar uchun bo'lim.</p>
+      <div class="field">
+        <label for="loginUser">Foydalanuvchi nomi</label>
+        <input id="loginUser" type="text" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="loginPass">Parol</label>
+        <input id="loginPass" type="password" autocomplete="current-password">
+      </div>
+      <div class="auth-error" id="loginError"></div>
+      <button class="btn btn-primary" onclick="adminLogin()">Kirish</button>
+    </div>
+  </div>
+
+  <div id="dashScreen" style="display:none;">
+    <div class="stat-grid" id="statGrid"></div>
+
+    <section class="block">
+      <h3>Shaxsiyat tiplari taqsimoti</h3>
+      <div id="typeBars"></div>
+    </section>
+
+    <section class="block">
+      <h3>Eng ko'p taklif qilganlar</h3>
+      <div id="referrerList"></div>
+    </section>
+
+    <section class="block">
+      <h3>Foydalanuvchilar</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Foydalanuvchi</th><th>Email</th><th>Ro'yxatdan o'tgan</th><th>Testlar</th><th>Oxirgi tip</th><th>Taklif qilgan</th></tr>
+          </thead>
+          <tbody id="usersBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+const API_BASE = '/api';
+let authToken = localStorage.getItem('mbti_token') || null;
+
+async function api(path, options = {}) {
+  const headers = Object.assign({'Content-Type':'application/json'}, options.headers || {});
+  if (authToken) headers['Authorization'] = 'Bearer ' + authToken;
+  const res = await fetch(API_BASE + path, Object.assign({}, options, {headers}));
+  let data = null;
+  try { data = await res.json(); } catch(e) { data = null; }
+  if (!res.ok) throw new Error((data && data.error) || 'Xatolik yuz berdi.');
+  return data;
+}
+
+function escapeHtml(s){
+  return String(s ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function adminLogin(){
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  if(!user || !pass){ errEl.textContent = "Ikkala maydonni ham to'ldiring."; return; }
+  try{
+    const data = await api('/auth/login', {method:'POST', body: JSON.stringify({username:user, password:pass})});
+    authToken = data.token;
+    localStorage.setItem('mbti_token', authToken);
+    localStorage.setItem('mbti_username', data.username);
+    await loadDashboard();
+  }catch(e){
+    errEl.textContent = e.message;
+  }
+}
+
+function showLogin(){
+  document.getElementById('loginScreen').style.display = 'block';
+  document.getElementById('dashScreen').style.display = 'none';
+}
+
+function showDash(){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('dashScreen').style.display = 'block';
+}
+
+async function loadDashboard(){
+  let stats, users;
+  try{
+    stats = await api('/admin/stats');
+    users = await api('/admin/users');
+  }catch(e){
+    showLogin();
+    document.getElementById('loginError').textContent = e.message.includes('administrator') ? e.message : '';
+    return;
+  }
+  showDash();
+  renderStats(stats);
+  renderUsers(users.users || []);
+}
+
+function renderStats(stats){
+  document.getElementById('statGrid').innerHTML = `
+    <div class="stat-card"><div class="stat-num">${stats.totalUsers}</div><div class="stat-label">Jami foydalanuvchilar</div></div>
+    <div class="stat-card"><div class="stat-num">${stats.totalResults}</div><div class="stat-label">Jami topshirilgan testlar</div></div>
+  `;
+
+  const dist = stats.typeDistribution || {};
+  const entries = Object.entries(dist).sort((a,b)=>b[1]-a[1]);
+  const max = entries.length ? entries[0][1] : 1;
+  const barsBox = document.getElementById('typeBars');
+  if(!entries.length){
+    barsBox.innerHTML = '<div class="empty-hint">Hali natijalar yo\'q.</div>';
+  } else {
+    barsBox.innerHTML = entries.map(([type,count])=>`
+      <div class="bar-row">
+        <span class="code">${type}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(count/max*100)}%"></div></div>
+        <span class="count">${count}</span>
+      </div>
+    `).join('');
+  }
+
+  const refBox = document.getElementById('referrerList');
+  const refs = stats.topReferrers || [];
+  if(!refs.length){
+    refBox.innerHTML = '<div class="empty-hint">Hali hech kim do\'stini taklif qilmagan.</div>';
+  } else {
+    const maxRef = refs[0].c;
+    refBox.innerHTML = refs.map(r=>`
+      <div class="bar-row">
+        <span class="code" style="font-size:0.82rem;">${escapeHtml(r.referred_by)}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(r.c/maxRef*100)}%"></div></div>
+        <span class="count">${r.c}</span>
+      </div>
+    `).join('');
+  }
+}
+
+function renderUsers(users){
+  const body = document.getElementById('usersBody');
+  if(!users.length){
+    body.innerHTML = '<tr><td colspan="6" class="empty-hint">Hali foydalanuvchilar yo\'q.</td></tr>';
+    return;
+  }
+  body.innerHTML = users.map(u=>{
+    const d = new Date(u.created_at);
+    const dateStr = d.toLocaleDateString('uz-UZ', {day:'2-digit', month:'short', year:'numeric'});
+    return `<tr>
+      <td>${escapeHtml(u.username)}${u.is_admin ? ' <span class="muted">(admin)</span>' : ''}</td>
+      <td class="muted">${escapeHtml(u.email) || '—'}</td>
+      <td class="muted">${dateStr}</td>
+      <td>${u.test_count}</td>
+      <td>${escapeHtml(u.latest_type) || '—'}</td>
+      <td class="muted">${escapeHtml(u.referred_by) || '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ============== INIT ============== */
+if(authToken){
+  loadDashboard();
+} else {
+  showLogin();
+}
+</script>
+</body>
+</html>
